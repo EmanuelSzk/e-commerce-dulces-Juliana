@@ -88,10 +88,11 @@ const products: SeedProduct[] = [
   },
 ];
 
-const shippingRules = [
-  { id: "envio-posadas", name: "Posadas", cost: 3200 },
-  { id: "envio-interior", name: "Interior de Misiones", cost: 6000 },
-];
+const storeSettings = {
+  shippingCost: 2000,
+  freeShippingFrom: 25000,
+  pickupAddress: "Av. Rademacher 5458, Posadas, Misiones",
+};
 
 async function main() {
   const categoryIds = new Map<string, string>();
@@ -126,13 +127,11 @@ async function main() {
     }
   }
 
-  for (const rule of shippingRules) {
-    await prisma.shippingRule.upsert({
-      where: { id: rule.id },
-      update: rule,
-      create: rule,
-    });
-  }
+  await prisma.storeSettings.upsert({
+    where: { id: "store" },
+    update: storeSettings,
+    create: { id: "store", ...storeSettings },
+  });
 
   console.log(
     `Seed completado: ${categories.length} categorías, ${products.length} productos.`,

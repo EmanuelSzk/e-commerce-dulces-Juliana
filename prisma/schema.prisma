@@ -32,6 +32,11 @@ enum PaymentStatus {
   IN_PROCESS
 }
 
+enum DeliveryMethod {
+  DELIVERY
+  PICKUP
+}
+
 // id matches Supabase auth.users.id (uuid). Created/kept in sync on
 // signup via a Server Action, not FK-enforced (auth.users lives in Supabase's own schema).
 model Profile {
@@ -88,32 +93,35 @@ model ProductVariant {
   @@map("product_variants")
 }
 
-// Flat/zone shipping rates for the MVP (no courier API integration).
-model ShippingRule {
-  id     String  @id @default(cuid())
-  name   String
-  cost   Decimal @db.Decimal(10, 2)
-  active Boolean @default(true)
+// Single-row store configuration (id is always "store"), editable later from
+// the admin panel. Delivery is Posadas-only at one flat rate, so no zones.
+model StoreSettings {
+  id               String   @id @default("store")
+  shippingCost     Decimal  @db.Decimal(10, 2)
+  freeShippingFrom Decimal  @db.Decimal(10, 2)
+  pickupAddress    String
+  updatedAt        DateTime @updatedAt
 
-  @@map("shipping_rules")
+  @@map("store_settings")
 }
 
 model Order {
-  id              String      @id @default(cuid())
-  user            Profile     @relation(fields: [userId], references: [id])
-  userId          String      @db.Uuid
-  status          OrderStatus @default(PENDING)
+  id              String         @id @default(cuid())
+  user            Profile        @relation(fields: [userId], references: [id])
+  userId          String         @db.Uuid
+  status          OrderStatus    @default(PENDING)
   items           OrderItem[]
   payment         Payment?
-  subtotal        Decimal     @db.Decimal(10, 2)
-  shippingCost    Decimal     @db.Decimal(10, 2)
-  total           Decimal     @db.Decimal(10, 2)
-  shippingName    String
-  shippingAddress String
-  shippingCity    String
-  shippingZone    String
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  deliveryMethod  DeliveryMethod
+  contactName     String
+  contactPhone    String
+  // Null when the customer picks the order up at the store.
+  shippingAddress String?
+  subtotal        Decimal        @db.Decimal(10, 2)
+  shippingCost    Decimal        @db.Decimal(10, 2)
+  total           Decimal        @db.Decimal(10, 2)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@map("orders")
 }
@@ -136,6 +144,8 @@ model Payment {
   order          Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId        String        @unique
   mpPreferenceId String?
+  // Checkout Pro link, kept so an abandoned payment can be resumed later.
+  mpInitPoint    String?
   mpPaymentId    String?       @unique
   status         PaymentStatus @default(PENDING)
   rawPayload     Json?
