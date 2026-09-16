@@ -3,6 +3,7 @@ import { updateSession } from "@/lib/supabase/proxy";
 
 const ADMIN_PREFIX = "/admin";
 const ACCOUNT_PREFIX = "/cuenta";
+const CHECKOUT_PREFIX = "/checkout";
 const PUBLIC_ACCOUNT_ROUTES = ["/cuenta/login", "/cuenta/registro"];
 
 export async function proxy(request: NextRequest) {
@@ -14,12 +15,16 @@ export async function proxy(request: NextRequest) {
   );
   const requiresAuth =
     path.startsWith(ADMIN_PREFIX) ||
+    path.startsWith(CHECKOUT_PREFIX) ||
     (path.startsWith(ACCOUNT_PREFIX) && !isPublicAccountRoute);
 
   if (!user && requiresAuth) {
     const url = request.nextUrl.clone();
     url.pathname = "/cuenta/login";
-    url.searchParams.set("next", path);
+    // Keep the original query inside `next` (e.g. Mercado Pago's return
+    // params on /checkout/resultado) instead of leaking it onto the login URL.
+    url.search = "";
+    url.searchParams.set("next", path + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
 
