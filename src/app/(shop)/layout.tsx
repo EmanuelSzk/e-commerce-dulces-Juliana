@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
+import { countCartUnits, readCart } from "@/lib/services/cart-service";
 
 export default async function ShopLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const profile = await getCurrentUser();
+  const [profile, cart] = await Promise.all([getCurrentUser(), readCart()]);
+  const cartUnits = countCartUnits(cart);
 
   return (
     <>
@@ -17,7 +19,9 @@ export default async function ShopLayout({
           </Link>
           <nav className="flex gap-6 text-sm">
             <Link href="/productos">Productos</Link>
-            <Link href="/carrito">Carrito</Link>
+            <Link href="/carrito">
+              Carrito{cartUnits > 0 ? ` (${cartUnits})` : ""}
+            </Link>
             {profile?.role === "ADMIN" && <Link href="/admin">Admin</Link>}
             <Link href={profile ? "/cuenta" : "/cuenta/login"}>
               {profile ? profile.name : "Ingresar"}

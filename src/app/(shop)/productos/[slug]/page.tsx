@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getProductBySlug } from "@/lib/services/product-service";
-import { formatPrice } from "@/lib/format";
+import { AddToCartForm } from "@/components/shop/add-to-cart-form";
 
 export default async function ProductoDetallePage({
   params,
@@ -10,6 +10,14 @@ export default async function ProductoDetallePage({
   const product = await getProductBySlug(slug);
 
   if (!product) notFound();
+
+  // Prisma's Decimal can't be passed to a client component; send plain numbers.
+  const variants = product.variants.map((variant) => ({
+    id: variant.id,
+    name: variant.name,
+    price: Number(variant.price),
+    stock: variant.stock,
+  }));
 
   return (
     <div className="grid gap-8 sm:grid-cols-2">
@@ -31,27 +39,7 @@ export default async function ProductoDetallePage({
           {product.description}
         </p>
 
-        <h2 className="mt-8 text-sm font-medium">Presentaciones</h2>
-        <ul className="mt-3 space-y-2">
-          {product.variants.map((variant) => (
-            <li
-              key={variant.id}
-              className="flex items-baseline justify-between rounded-lg border border-black/10 px-4 py-3"
-            >
-              <span className="text-sm">{variant.name}</span>
-              <span className="flex items-baseline gap-3">
-                <span className="font-medium">
-                  {formatPrice(variant.price.toString())}
-                </span>
-                <span className="text-xs text-black/50">
-                  {variant.stock > 0
-                    ? `${variant.stock} disponibles`
-                    : "Agotado"}
-                </span>
-              </span>
-            </li>
-          ))}
-        </ul>
+        <AddToCartForm variants={variants} />
       </div>
     </div>
   );
