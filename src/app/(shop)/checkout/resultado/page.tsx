@@ -2,12 +2,16 @@ import Link from "next/link";
 import { requireUser } from "@/lib/dal";
 import { getOrderForUser } from "@/lib/services/order-service";
 import { formatOrderNumber, formatPrice } from "@/lib/format";
-import { deliveryMethodLabels } from "@/lib/order-labels";
+import { deliveryMethodLabels, orderStatusLabels } from "@/lib/order-labels";
 
 const outcomes = {
-  approved: {
+  confirmed: {
     title: "¡Gracias por tu compra!",
-    body: "Recibimos tu pago. Vas a ver el pedido confirmado en tu cuenta en cuanto Mercado Pago lo acredite.",
+    body: "Tu pago está confirmado. Podés seguir el estado del pedido desde tu cuenta.",
+  },
+  confirming: {
+    title: "¡Gracias por tu compra!",
+    body: "Estamos esperando la confirmación de Mercado Pago. Actualizá la página en unos segundos para ver tu pedido confirmado.",
   },
   pending: {
     title: "Tu pago está pendiente",
@@ -29,18 +33,20 @@ export default async function ResultadoPage({
   const profile = await requireUser();
   const params = await searchParams;
 
-  // Display only. These query params come from the browser and can be edited,
-  // so they never change the order's status — the payment webhook does that.
+  // These query params come from the browser and can be edited, so they only
+  // pick the wording. The order's real status (set by the payment webhook) wins.
   const status = firstValue(params.collection_status) ?? firstValue(params.status);
   const orderId = firstValue(params.external_reference);
   const order = orderId ? await getOrderForUser(orderId, profile.id) : null;
 
   const outcome =
-    status === "approved"
-      ? outcomes.approved
-      : status === "pending" || status === "in_process"
-        ? outcomes.pending
-        : outcomes.failed;
+    order && order.status !== "PENDING" && order.status !== "CANCELLED"
+      ? outcomes.confirmed
+      : status === "approved"
+        ? outcomes.confirming
+        : status === "pending" || status === "in_process"
+          ? outcomes.pending
+          : outcomes.failed;
 
   const canRetry =
     outcome === outcomes.failed &&
@@ -57,6 +63,10 @@ export default async function ResultadoPage({
           <div className="flex justify-between">
             <dt className="text-black/60">Pedido</dt>
             <dd>{formatOrderNumber(order.id)}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-black/60">Estado</dt>
+            <dd>{orderStatusLabels[order.status]}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-black/60">Entrega</dt>

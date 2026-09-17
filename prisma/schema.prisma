@@ -30,6 +30,7 @@ enum PaymentStatus {
   APPROVED
   REJECTED
   IN_PROCESS
+  REFUNDED
 }
 
 enum DeliveryMethod {
@@ -120,6 +121,10 @@ model Order {
   subtotal        Decimal        @db.Decimal(10, 2)
   shippingCost    Decimal        @db.Decimal(10, 2)
   total           Decimal        @db.Decimal(10, 2)
+  paidAt          DateTime?
+  // Null when nothing needs attention. Otherwise explains what the store must
+  // review (e.g. paid but out of stock, duplicate payment). Admin-only.
+  reviewNote      String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 

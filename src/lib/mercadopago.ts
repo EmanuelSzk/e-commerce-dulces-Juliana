@@ -1,9 +1,38 @@
 import "server-only";
-import { MercadoPagoConfig, Preference } from "mercadopago";
+import {
+  MercadoPagoConfig,
+  Payment,
+  Preference,
+  WebhookSignatureValidator,
+} from "mercadopago";
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
 });
+
+// Queried with our own access token, so Mercado Pago only returns payments
+// collected by this store: a forged notification can't fabricate one.
+export function getPayment(paymentId: string) {
+  return new Payment(client).get({ id: paymentId });
+}
+
+// Throws InvalidWebhookSignatureError on a bad signature, or a plain Error if
+// the secret isn't configured (so the webhook fails closed).
+export function verifyWebhookSignature(input: {
+  xSignature: string | null;
+  xRequestId: string | null;
+  dataId: string | null;
+}) {
+  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  if (!secret) {
+    throw new Error("MERCADOPAGO_WEBHOOK_SECRET no está configurada.");
+  }
+
+  // No toleranceSeconds: replaying a valid notification only re-fetches the
+  // payment and processing is idempotent, while a time window could reject
+  // Mercado Pago's own delayed retries.
+  WebhookSignatureValidator.validate({ ...input, secret });
+}
 
 export type CheckoutPreferenceInput = {
   orderId: string;
