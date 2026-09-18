@@ -1,8 +1,12 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/dal";
 import { readCart, resolveCart } from "@/lib/services/cart-service";
 import { getStoreSettings } from "@/lib/services/settings-service";
 import { CheckoutForm } from "@/components/shop/checkout-form";
+import { CheckoutSteps } from "@/components/shop/checkout-steps";
+
+export const metadata: Metadata = { title: "Finalizar compra" };
 
 export default async function CheckoutPage() {
   const profile = await requireUser();
@@ -18,8 +22,9 @@ export default async function CheckoutPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold">Finalizar compra</h1>
+    <div className="py-2">
+      <CheckoutSteps current={2} />
+      <h1 className="mt-5 font-serif text-4xl text-ink">Datos y entrega</h1>
       <div className="mt-6">
         <CheckoutForm
           lines={cart.lines.map((line) => ({

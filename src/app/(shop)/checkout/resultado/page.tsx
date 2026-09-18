@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { requireUser } from "@/lib/dal";
 import { getOrderForUser } from "@/lib/services/order-service";
 import { formatOrderNumber, formatPrice } from "@/lib/format";
 import { deliveryMethodLabels, orderStatusLabels } from "@/lib/order-labels";
+import { CheckoutSteps } from "@/components/shop/checkout-steps";
+import { buttonClass } from "@/components/ui/styles";
+
+export const metadata: Metadata = { title: "Resultado del pago" };
 
 const outcomes = {
   confirmed: {
@@ -54,45 +59,43 @@ export default async function ResultadoPage({
     order.payment?.mpInitPoint;
 
   return (
-    <div className="mx-auto max-w-lg">
-      <h1 className="text-2xl font-semibold">{outcome.title}</h1>
-      <p className="mt-2 text-black/70">{outcome.body}</p>
+    <div className="mx-auto max-w-lg py-4">
+      <CheckoutSteps current={3} />
+      <h1 className="mt-6 font-serif text-5xl leading-tight text-ink">{outcome.title}</h1>
+      <p className="mt-3 text-[15px] font-light leading-relaxed text-cocoa">{outcome.body}</p>
 
       {order && (
-        <dl className="mt-6 space-y-2 rounded-lg border border-black/10 p-4 text-sm">
+        <dl className="mt-6 grid gap-2.5 rounded-card bg-surface p-5 text-sm font-light text-cocoa">
           <div className="flex justify-between">
-            <dt className="text-black/60">Pedido</dt>
-            <dd>{formatOrderNumber(order.id)}</dd>
+            <dt>Pedido</dt>
+            <dd className="font-medium text-ink">{formatOrderNumber(order.id)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-black/60">Estado</dt>
-            <dd>{orderStatusLabels[order.status]}</dd>
+            <dt>Estado</dt>
+            <dd className="font-medium text-ink">{orderStatusLabels[order.status]}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-black/60">Entrega</dt>
-            <dd>{deliveryMethodLabels[order.deliveryMethod]}</dd>
+            <dt>Entrega</dt>
+            <dd className="font-medium text-ink">{deliveryMethodLabels[order.deliveryMethod]}</dd>
           </div>
-          <div className="flex justify-between font-medium">
-            <dt>Total</dt>
-            <dd>{formatPrice(order.total.toString())}</dd>
+          <div className="mt-1 flex items-baseline justify-between border-t border-ink/10 pt-3">
+            <dt className="font-medium text-ink">Total</dt>
+            <dd className="text-2xl font-semibold text-ink">{formatPrice(order.total.toString())}</dd>
           </div>
         </dl>
       )}
 
-      <div className="mt-6 flex gap-3">
+      <div className="mt-6 flex flex-wrap gap-3">
         {canRetry && (
-          <a
-            href={order.payment!.mpInitPoint!}
-            className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white"
-          >
+          <a href={order.payment!.mpInitPoint!} className={buttonClass("primary", "md")}>
             Reintentar el pago
           </a>
         )}
-        <Link
-          href="/cuenta"
-          className="rounded-full border border-black/15 px-4 py-2 text-sm"
-        >
+        <Link href="/cuenta" className={buttonClass("outline", "md")}>
           Ver mis pedidos
+        </Link>
+        <Link href="/productos" className={buttonClass("outline", "md")}>
+          Seguir comprando
         </Link>
       </div>
     </div>

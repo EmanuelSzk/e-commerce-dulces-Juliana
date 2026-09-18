@@ -1,77 +1,81 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import type { OrderStatus } from "@/generated/prisma/client";
 import { requireUser } from "@/lib/dal";
 import { getOrdersForUser } from "@/lib/services/order-service";
 import { formatDate, formatOrderNumber, formatPrice } from "@/lib/format";
 import { deliveryMethodLabels, orderStatusLabels } from "@/lib/order-labels";
+import { badgeClass, buttonClass } from "@/components/ui/styles";
 import { logout } from "./actions";
+
+export const metadata: Metadata = { title: "Mi cuenta" };
+
+const statusTone: Record<OrderStatus, "blush" | "ink" | "sand"> = {
+  PENDING: "blush",
+  PAID: "ink",
+  SHIPPED: "ink",
+  DELIVERED: "sand",
+  CANCELLED: "sand",
+};
 
 export default async function CuentaPage() {
   const profile = await requireUser();
   const orders = await getOrdersForUser(profile.id);
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-semibold">Mi cuenta</h1>
+    <div className="mx-auto max-w-3xl py-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h1 className="font-serif text-5xl text-ink">Hola, {profile.name}</h1>
+        <form action={logout}>
+          <button type="submit" className="text-sm text-taupe hover:underline">
+            Cerrar sesión
+          </button>
+        </form>
+      </div>
+      <p className="mt-1 text-sm font-light text-taupe">
+        {profile.email}
+        {profile.role === "ADMIN" && " · Administradora"}
+      </p>
 
-      <dl className="mt-6 space-y-3 rounded-lg border border-black/10 p-4 text-sm">
-        <div className="flex justify-between">
-          <dt className="text-black/60">Nombre</dt>
-          <dd>{profile.name}</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-black/60">Email</dt>
-          <dd>{profile.email}</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-black/60">Tipo de cuenta</dt>
-          <dd>{profile.role === "ADMIN" ? "Administradora" : "Clienta"}</dd>
-        </div>
-      </dl>
-
-      <h2 className="mt-10 text-lg font-semibold">Mis pedidos</h2>
+      <h2 className="mt-10 font-serif text-3xl text-ink">Mis pedidos</h2>
 
       {orders.length === 0 ? (
-        <p className="mt-3 text-sm text-black/60">
-          Todavía no hiciste pedidos.{" "}
-          <Link href="/productos" className="underline">
-            Ver productos
+        <div className="mt-4 rounded-card bg-surface p-6">
+          <p className="text-cocoa">Todavía no hiciste pedidos.</p>
+          <Link href="/productos" className={buttonClass("primary", "md", "mt-4")}>
+            Ver el catálogo
           </Link>
-        </p>
+        </div>
       ) : (
         <ul className="mt-4 space-y-3">
           {orders.map((order) => (
-            <li key={order.id} className="rounded-lg border border-black/10 p-4">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <li key={order.id} className="rounded-card bg-surface p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="font-medium">{formatOrderNumber(order.id)}</p>
-                  <p className="text-xs text-black/50">
-                    {formatDate(order.createdAt)} ·{" "}
-                    {deliveryMethodLabels[order.deliveryMethod]}
+                  <p className="font-medium text-ink">Pedido {formatOrderNumber(order.id)}</p>
+                  <p className="text-[12.5px] font-light text-taupe">
+                    {formatDate(order.createdAt)} · {deliveryMethodLabels[order.deliveryMethod]}
                   </p>
                 </div>
-                <span className="rounded-full bg-black/5 px-3 py-1 text-xs">
+                <span className={badgeClass(statusTone[order.status])}>
                   {orderStatusLabels[order.status]}
                 </span>
               </div>
 
-              <ul className="mt-3 space-y-1 text-sm text-black/70">
+              <ul className="mt-3 space-y-1 text-sm font-light text-cocoa">
                 {order.items.map((item) => (
                   <li key={item.id}>
-                    {item.quantity} × {item.variant.product.name} —{" "}
-                    {item.variant.name}
+                    {item.quantity} × {item.variant.product.name} — {item.variant.name}
                   </li>
                 ))}
               </ul>
 
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-sm font-medium">
-                  Total {formatPrice(order.total.toString())}
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-lg font-semibold text-ink">
+                  {formatPrice(order.total.toString())}
                 </p>
                 {order.status === "PENDING" && order.payment?.mpInitPoint && (
-                  <a
-                    href={order.payment.mpInitPoint}
-                    className="rounded-full bg-black px-4 py-1.5 text-sm font-medium text-white"
-                  >
+                  <a href={order.payment.mpInitPoint} className={buttonClass("primary", "md")}>
                     Pagar
                   </a>
                 )}
@@ -80,15 +84,6 @@ export default async function CuentaPage() {
           ))}
         </ul>
       )}
-
-      <form action={logout} className="mt-10">
-        <button
-          type="submit"
-          className="rounded-full border border-black/15 px-4 py-2 text-sm"
-        >
-          Cerrar sesión
-        </button>
-      </form>
     </div>
   );
 }

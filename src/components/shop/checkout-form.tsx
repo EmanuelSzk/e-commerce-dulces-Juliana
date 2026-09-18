@@ -4,6 +4,8 @@ import { useActionState, useState } from "react";
 import { createOrder, type CheckoutFormState } from "@/app/(shop)/checkout/actions";
 import { calculateTotals, type DeliveryMethod } from "@/lib/pricing";
 import { formatPrice } from "@/lib/format";
+import { buttonClass, inputClass } from "@/components/ui/styles";
+import { LockIcon } from "./icons";
 
 export type CheckoutLine = {
   variantId: string;
@@ -21,8 +23,9 @@ type CheckoutFormProps = {
   defaultName: string;
 };
 
-const inputClass =
-  "mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm";
+function FieldError({ messages }: { messages?: string[] }) {
+  return messages?.[0] ? <p className="mt-1.5 text-sm text-berry">{messages[0]}</p> : null;
+}
 
 export function CheckoutForm(props: CheckoutFormProps) {
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("DELIVERY");
@@ -33,51 +36,63 @@ export function CheckoutForm(props: CheckoutFormProps) {
 
   const totals = calculateTotals(props.subtotal, deliveryMethod, props);
 
+  const options = [
+    {
+      value: "DELIVERY" as const,
+      label: "Envío a domicilio",
+      detail:
+        props.subtotal >= props.freeShippingFrom
+          ? "Solo dentro de Posadas · gratis en este pedido"
+          : `Solo dentro de Posadas · ${formatPrice(props.shippingCost)}`,
+    },
+    {
+      value: "PICKUP" as const,
+      label: "Retiro en el local",
+      detail: `Sin cargo · ${props.pickupAddress}`,
+    },
+  ];
+
   return (
-    <form action={action} className="grid gap-8 lg:grid-cols-[1fr_340px]">
+    <form action={action} className="grid items-start gap-8 lg:grid-cols-[1.65fr_1fr]">
       <div className="space-y-8">
         <fieldset>
-          <legend className="font-medium">¿Cómo lo recibís?</legend>
-          <div className="mt-3 space-y-2">
-            {(
-              [
-                ["DELIVERY", "Envío a domicilio", "Solo dentro de Posadas"],
-                ["PICKUP", "Retiro en el local", props.pickupAddress],
-              ] as const
-            ).map(([value, label, detail]) => (
-              <label
-                key={value}
-                className={`flex cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 ${
-                  deliveryMethod === value ? "border-black" : "border-black/10"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="deliveryMethod"
-                  value={value}
-                  checked={deliveryMethod === value}
-                  onChange={() => setDeliveryMethod(value)}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="block text-sm font-medium">{label}</span>
-                  <span className="block text-xs text-black/60">{detail}</span>
-                </span>
-              </label>
-            ))}
+          <legend className="font-serif text-2xl text-ink">¿Cómo lo recibís?</legend>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {options.map((option) => {
+              const selected = deliveryMethod === option.value;
+              return (
+                <label
+                  key={option.value}
+                  className={`flex cursor-pointer items-start gap-3 rounded-[20px] p-4 transition ${
+                    selected ? "bg-blush ring-2 ring-pink" : "bg-surface hover:bg-sand"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="deliveryMethod"
+                    value={option.value}
+                    checked={selected}
+                    onChange={() => setDeliveryMethod(option.value)}
+                    className="mt-1 accent-[#bf4c79]"
+                  />
+                  <span>
+                    <span className="block text-[15px] font-medium text-ink">{option.label}</span>
+                    <span className="mt-0.5 block text-[13px] font-light text-cocoa">
+                      {option.detail}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
           </div>
-          {state?.errors?.deliveryMethod && (
-            <p className="mt-1 text-sm text-red-600">
-              {state.errors.deliveryMethod[0]}
-            </p>
-          )}
+          <FieldError messages={state?.errors?.deliveryMethod} />
         </fieldset>
 
         <fieldset className="space-y-4">
-          <legend className="font-medium">Datos de contacto</legend>
+          <legend className="font-serif text-2xl text-ink">Tus datos</legend>
 
           <div>
-            <label htmlFor="contactName" className="block text-sm font-medium">
+            <label htmlFor="contactName" className="text-[12.5px] font-medium text-cocoa">
               Nombre y apellido
             </label>
             <input
@@ -87,15 +102,11 @@ export function CheckoutForm(props: CheckoutFormProps) {
               defaultValue={props.defaultName}
               className={inputClass}
             />
-            {state?.errors?.contactName && (
-              <p className="mt-1 text-sm text-red-600">
-                {state.errors.contactName[0]}
-              </p>
-            )}
+            <FieldError messages={state?.errors?.contactName} />
           </div>
 
           <div>
-            <label htmlFor="contactPhone" className="block text-sm font-medium">
+            <label htmlFor="contactPhone" className="text-[12.5px] font-medium text-cocoa">
               Teléfono
             </label>
             <input
@@ -106,22 +117,15 @@ export function CheckoutForm(props: CheckoutFormProps) {
               placeholder="376 412-3456"
               className={inputClass}
             />
-            <p className="mt-1 text-xs text-black/50">
+            <p className="mt-1.5 text-xs font-light text-taupe">
               Lo usamos solo para coordinar la entrega o el retiro.
             </p>
-            {state?.errors?.contactPhone && (
-              <p className="mt-1 text-sm text-red-600">
-                {state.errors.contactPhone[0]}
-              </p>
-            )}
+            <FieldError messages={state?.errors?.contactPhone} />
           </div>
 
           {deliveryMethod === "DELIVERY" && (
             <div>
-              <label
-                htmlFor="shippingAddress"
-                className="block text-sm font-medium"
-              >
+              <label htmlFor="shippingAddress" className="text-[12.5px] font-medium text-cocoa">
                 Dirección de entrega
               </label>
               <input
@@ -131,62 +135,53 @@ export function CheckoutForm(props: CheckoutFormProps) {
                 placeholder="Calle, número, piso/depto"
                 className={inputClass}
               />
-              <p className="mt-1 text-xs text-black/50">Posadas, Misiones</p>
-              {state?.errors?.shippingAddress && (
-                <p className="mt-1 text-sm text-red-600">
-                  {state.errors.shippingAddress[0]}
-                </p>
-              )}
+              <p className="mt-1.5 text-xs font-light text-taupe">Posadas, Misiones</p>
+              <FieldError messages={state?.errors?.shippingAddress} />
             </div>
           )}
         </fieldset>
       </div>
 
-      <aside className="h-fit rounded-lg border border-black/10 p-4">
-        <h2 className="font-medium">Tu pedido</h2>
+      <aside className="rounded-card bg-surface p-6">
+        <h2 className="font-serif text-2xl text-ink">Tu pedido</h2>
         <ul className="mt-4 space-y-2 text-sm">
           {props.lines.map((line) => (
             <li key={line.variantId} className="flex justify-between gap-4">
-              <span className="text-black/70">
+              <span className="font-light text-cocoa">
                 {line.quantity} × {line.title}
               </span>
-              <span>{formatPrice(line.lineTotal)}</span>
+              <span className="text-ink">{formatPrice(line.lineTotal)}</span>
             </li>
           ))}
         </ul>
 
-        <dl className="mt-4 space-y-2 border-t border-black/10 pt-4 text-sm">
+        <div className="my-4 h-px bg-ink/10" />
+        <dl className="grid gap-3 text-sm font-light text-cocoa">
           <div className="flex justify-between">
-            <dt className="text-black/60">Subtotal</dt>
-            <dd>{formatPrice(totals.subtotal)}</dd>
+            <dt>Subtotal</dt>
+            <dd className="font-medium text-ink">{formatPrice(totals.subtotal)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-black/60">
-              {deliveryMethod === "PICKUP" ? "Retiro en el local" : "Envío"}
-            </dt>
-            <dd>
+            <dt>{deliveryMethod === "PICKUP" ? "Retiro en el local" : "Envío"}</dt>
+            <dd className={totals.shippingCost === 0 ? "font-medium text-berry" : "font-medium text-ink"}>
               {totals.shippingCost === 0 ? "Gratis" : formatPrice(totals.shippingCost)}
             </dd>
           </div>
-          <div className="flex justify-between border-t border-black/10 pt-2 font-medium">
-            <dt>Total</dt>
-            <dd>{formatPrice(totals.total)}</dd>
-          </div>
         </dl>
+        <div className="my-4 h-px bg-ink/10" />
+        <div className="flex items-baseline justify-between">
+          <span className="font-medium text-ink">Total</span>
+          <span className="text-3xl font-semibold text-ink">{formatPrice(totals.total)}</span>
+        </div>
 
-        {state?.message && (
-          <p className="mt-4 text-sm text-red-600">{state.message}</p>
-        )}
+        {state?.message && <p className="mt-4 text-sm text-berry">{state.message}</p>}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="mt-4 w-full rounded-full bg-black px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
-        >
+        <button type="submit" disabled={pending} className={buttonClass("primary", "lg", "mt-5 w-full")}>
           {pending ? "Preparando el pago…" : "Pagar con Mercado Pago"}
         </button>
-        <p className="mt-3 text-xs text-black/50">
-          Te vamos a llevar a Mercado Pago para completar el pago.
+        <p className="mt-4 flex items-start gap-2 text-[12.5px] font-light leading-relaxed text-taupe">
+          <LockIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          Te llevamos a Mercado Pago para completar el pago de forma segura.
         </p>
       </aside>
     </form>
