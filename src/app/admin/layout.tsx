@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/dal";
+
+export const metadata: Metadata = {
+  title: { default: "Administración", template: "%s · Admin" },
+  robots: { index: false, follow: false },
+};
 
 const sections = [
   { href: "/admin", label: "Tablero" },
