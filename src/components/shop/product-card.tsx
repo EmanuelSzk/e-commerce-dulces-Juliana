@@ -6,42 +6,82 @@ import {
   getTotalStock,
   type ProductWithVariants,
 } from "@/lib/services/product-service";
+import { badgeClass, buttonClass, cardClass } from "@/components/ui/styles";
+import { QuickAddButton } from "./quick-add-button";
+
+export const LOW_STOCK_THRESHOLD = 3;
 
 export function ProductCard({ product }: { product: ProductWithVariants }) {
   const price = getDisplayPrice(product);
   const stock = getTotalStock(product);
-  const hasMultipleVariants = product.variants.length > 1;
+  const soldOut = stock === 0;
+  const lowStock = !soldOut && stock <= LOW_STOCK_THRESHOLD;
+  const singleVariant = product.variants.length === 1 ? product.variants[0] : null;
+  const href = `/productos/${product.slug}`;
 
   return (
-    <Link
-      href={`/productos/${product.slug}`}
-      className="group block overflow-hidden rounded-lg border border-black/10"
-    >
-      <div className="aspect-square overflow-hidden bg-black/5">
-        {product.imageUrl ? (
+    <div className={`${cardClass} flex flex-col p-3.5`}>
+      <Link
+        href={href}
+        className="relative block h-44 overflow-hidden rounded-tile bg-sand"
+      >
+        {product.imageUrl && (
           <Image
             src={product.imageUrl}
             alt={product.name}
-            width={400}
-            height={400}
-            className="h-full w-full object-cover transition group-hover:scale-105"
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+            className={`object-cover transition duration-300 hover:scale-105 ${
+              soldOut ? "opacity-40" : ""
+            }`}
           />
-        ) : null}
-      </div>
-      <div className="p-3">
-        <p className="text-xs uppercase tracking-wide text-black/40">
-          {product.category.name}
-        </p>
-        <p className="mt-1 truncate text-sm font-medium">{product.name}</p>
-        <p className="mt-1 text-sm text-black/60">
+        )}
+        {soldOut && (
+          <span className={`absolute left-2.5 top-2.5 ${badgeClass("ink")}`}>Sin stock</span>
+        )}
+        {lowStock && (
+          <span className={`absolute left-2.5 top-2.5 ${badgeClass("pink")}`}>
+            Quedan {stock}
+          </span>
+        )}
+      </Link>
+
+      <p className="mt-3.5 text-[11px] font-medium uppercase tracking-[0.08em] text-taupe">
+        {product.category.name}
+      </p>
+      <Link
+        href={href}
+        className={`mt-1 text-[17px] font-medium leading-snug hover:underline ${
+          soldOut ? "text-taupe" : "text-ink"
+        }`}
+      >
+        {product.name}
+      </Link>
+
+      <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
+        <span className={`text-xl font-semibold ${soldOut ? "text-taupe" : "text-ink"}`}>
           {price === null
-            ? "Sin presentaciones"
-            : `${hasMultipleVariants ? "Desde " : ""}${formatPrice(price)}`}
-        </p>
-        <p className="mt-1 text-xs text-black/50">
-          {stock > 0 ? `${stock} disponibles` : "Agotado"}
-        </p>
+            ? "—"
+            : `${product.variants.length > 1 ? "desde " : ""}${formatPrice(price)}`}
+        </span>
+        <span className="text-[12.5px] font-light text-taupe">
+          {soldOut ? "Agotado" : `${stock} disponibles`}
+        </span>
       </div>
-    </Link>
+
+      <div className="mt-auto">
+        {soldOut ? (
+          <button type="button" disabled className={buttonClass("outline", "md", "mt-3 w-full")}>
+            Agotado
+          </button>
+        ) : singleVariant ? (
+          <QuickAddButton variantId={singleVariant.id} />
+        ) : (
+          <Link href={href} className={buttonClass("ink", "md", "mt-3 w-full")}>
+            Elegir presentación
+          </Link>
+        )}
+      </div>
+    </div>
   );
 }

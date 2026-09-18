@@ -1,26 +1,35 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Identidad del mockup "Dulces Juliana". Solo modo claro, como el diseño. */
+@theme {
+  --color-cream: #fdf9f6;
+  --color-ink: #2a201d;
+  --color-cocoa: #5c4a44;
+  /* El #9b8880 del mockup no llega a 4.5:1 sobre crema en texto chico. */
+  --color-taupe: #7d6c66;
+  --color-pink: #e8699f;
+  /* Fondo de botones con texto blanco: #e8699f no alcanza 4.5:1. */
+  --color-pink-deep: #bf4c79;
+  --color-berry: #a63c69;
+  --color-peach: #f7e0d2;
+  --color-peach-ink: #7a4a38;
+  --color-blush: #fbe9f1;
+  --color-sand: #f2ece7;
+  --color-surface: #f7f2ee;
+
+  --radius-card: 1.375rem;
+  --radius-tile: 1rem;
+
+  --shadow-soft: 0 10px 26px -18px rgb(42 32 29 / 0.5);
+  --shadow-pink: 0 12px 24px -12px rgb(232 105 159 / 0.95);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-outfit);
+  --font-serif: var(--font-instrument-serif);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink);
 }

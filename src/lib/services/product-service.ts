@@ -17,6 +17,14 @@ export function getCategories() {
   return prisma.category.findMany({ orderBy: { name: "asc" } });
 }
 
+// For navigation: a category with nothing on sale would lead to an empty page.
+export function getCategoriesWithProducts() {
+  return prisma.category.findMany({
+    where: { products: { some: { active: true } } },
+    orderBy: { name: "asc" },
+  });
+}
+
 export function getProducts(params?: { categorySlug?: string }) {
   return prisma.product.findMany({
     where: {

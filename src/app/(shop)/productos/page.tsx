@@ -1,6 +1,12 @@
-import Link from "next/link";
-import { getCategories, getProducts } from "@/lib/services/product-service";
+import type { Metadata } from "next";
+import {
+  getCategoriesWithProducts,
+  getProducts,
+} from "@/lib/services/product-service";
 import { ProductCard } from "@/components/shop/product-card";
+import { CategoryChips } from "@/components/shop/category-chips";
+
+export const metadata: Metadata = { title: "Catálogo" };
 
 export default async function ProductosPage({
   searchParams,
@@ -9,50 +15,35 @@ export default async function ProductosPage({
   const categorySlug = typeof categoria === "string" ? categoria : undefined;
 
   const [categories, products] = await Promise.all([
-    getCategories(),
+    getCategoriesWithProducts(),
     getProducts({ categorySlug }),
   ]);
 
+  const activeCategory = categories.find((c) => c.slug === categorySlug);
+
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Productos</h1>
+      <h1 className="font-serif text-4xl text-ink md:text-5xl">
+        {activeCategory?.name ?? "Catálogo"}
+      </h1>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        <Link
-          href="/productos"
-          className={`rounded-full border px-4 py-1.5 text-sm ${
-            !categorySlug
-              ? "border-black bg-black text-white"
-              : "border-black/10 hover:bg-black/5"
-          }`}
-        >
-          Todas
-        </Link>
-        {categories.map((c) => (
-          <Link
-            key={c.id}
-            href={`/productos?categoria=${c.slug}`}
-            className={`rounded-full border px-4 py-1.5 text-sm ${
-              categorySlug === c.slug
-                ? "border-black bg-black text-white"
-                : "border-black/10 hover:bg-black/5"
-            }`}
-          >
-            {c.name}
-          </Link>
-        ))}
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <CategoryChips categories={categories} activeSlug={categorySlug} />
+        <div className="flex-1" />
+        <span className="text-[13px] font-light text-taupe">
+          {products.length} {products.length === 1 ? "producto" : "productos"}
+        </span>
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
-        {products.length === 0 && (
-          <p className="col-span-full text-black/60">
-            No hay productos en esta categoría todavía.
-          </p>
-        )}
-      </div>
+      {products.length === 0 ? (
+        <p className="mt-8 text-cocoa">No hay productos en esta categoría todavía.</p>
+      ) : (
+        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
