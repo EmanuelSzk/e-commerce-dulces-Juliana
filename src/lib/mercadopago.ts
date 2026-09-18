@@ -16,6 +16,25 @@ export function getPayment(paymentId: string) {
   return new Payment(client).get({ id: paymentId });
 }
 
+// Statuses meaning money was taken or may still be (e.g. a cash voucher not
+// yet paid). An order with any of these must not be cancelled.
+const IN_PROGRESS_STATUSES = new Set([
+  "approved",
+  "authorized",
+  "in_process",
+  "in_mediation",
+  "pending",
+]);
+
+export async function hasPaymentInProgress(orderId: string) {
+  const result = await new Payment(client).search({
+    options: { external_reference: orderId },
+  });
+  return (result.results ?? []).some((payment) =>
+    IN_PROGRESS_STATUSES.has(payment.status ?? ""),
+  );
+}
+
 // Throws InvalidWebhookSignatureError on a bad signature, or a plain Error if
 // the secret isn't configured (so the webhook fails closed).
 export function verifyWebhookSignature(input: {

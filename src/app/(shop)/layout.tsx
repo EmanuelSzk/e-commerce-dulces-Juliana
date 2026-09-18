@@ -8,6 +8,7 @@ import { Logo } from "@/components/shop/logo";
 import { MobileNav } from "@/components/shop/mobile-nav";
 import { SiteFooter } from "@/components/shop/site-footer";
 import { CartIcon } from "@/components/shop/icons";
+import { RefreshOnRestore } from "@/components/shop/refresh-on-restore";
 
 export default async function ShopLayout({
   children,
@@ -85,6 +86,7 @@ export default async function ShopLayout({
       </main>
 
       <SiteFooter categories={categories} settings={settings} />
+      <RefreshOnRestore />
       <MobileNav cartUnits={cartUnits} accountHref={accountHref} />
     </>
   );

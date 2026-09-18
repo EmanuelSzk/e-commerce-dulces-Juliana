@@ -3,13 +3,20 @@
 import { redirect } from "next/navigation";
 import * as z from "zod";
 import { prisma } from "@/lib/db";
+import { requireUser } from "@/lib/dal";
+import { hasPaymentInProgress } from "@/lib/mercadopago";
 import {
+  addItemsToCart,
   normalizeCartLines,
   readCart,
   resolveCart,
   writeCart,
   type CartItem,
 } from "@/lib/services/cart-service";
+import {
+  cancelPendingOrderForUser,
+  getOrderForUser,
+} from "@/lib/services/order-service";
 
 export type AddToCartState = { ok: boolean; message: string } | undefined;
 
@@ -116,4 +123,35 @@ export async function proceedToCheckout() {
   const cart = await resolveCart(await readCart());
   await writeCart(normalizeCartLines(cart.lines));
   redirect("/checkout");
+}
+
+// "Volver a editar en el carrito": cancela el pedido pendiente y devuelve sus
+// productos al carrito, así nunca hay dos pedidos armados con lo mismo.
+export async function restorePendingOrder(formData: FormData) {
+  const profile = await requireUser();
+  const orderId = formData.get("orderId");
+  if (typeof orderId !== "string") redirect("/carrito");
+
+  const order = await getOrderForUser(orderId, profile.id);
+  if (!order || order.status !== "PENDING") redirect("/carrito");
+
+  // If the customer already paid (or left a cash voucher pending), cancelling
+  // would leave a charge without an order. When Mercado Pago can't be reached,
+  // err on the safe side and leave the order untouched.
+  let inProgress = true;
+  try {
+    inProgress = await hasPaymentInProgress(order.id);
+  } catch (error) {
+    console.error("No se pudo consultar el pago antes de cancelar", { orderId, error });
+    redirect("/carrito?pedido=sin-verificar");
+  }
+  if (inProgress) redirect("/carrito?pedido=en-proceso");
+
+  const cancelled = await cancelPendingOrderForUser(order.id, profile.id);
+  if (!cancelled) redirect("/carrito");
+
+  await addItemsToCart(
+    order.items.map((item) => ({ variantId: item.variantId, quantity: item.quantity })),
+  );
+  redirect("/carrito?pedido=restaurado");
 }

@@ -1,25 +1,57 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { getCurrentUser } from "@/lib/dal";
 import { readCart, resolveCart } from "@/lib/services/cart-service";
+import { getRecentPendingOrdersForUser } from "@/lib/services/order-service";
 import { getStoreSettings } from "@/lib/services/settings-service";
 import { calculateTotals } from "@/lib/pricing";
 import { formatPrice } from "@/lib/format";
 import { CheckoutSteps } from "@/components/shop/checkout-steps";
+import { PendingOrderNotice } from "@/components/shop/pending-order-notice";
 import { AlertIcon, CheckIcon, LockIcon } from "@/components/shop/icons";
 import { buttonClass } from "@/components/ui/styles";
 import { proceedToCheckout, removeCartItem, updateCartItem } from "./actions";
 
 export const metadata: Metadata = { title: "Tu carrito" };
 
+const orderNotices: Record<string, string> = {
+  restaurado: "Listo: cancelamos el pedido pendiente y sus productos volvieron a tu carrito.",
+  "en-proceso":
+    "Ese pedido ya tiene un pago en proceso en Mercado Pago, así que no lo cancelamos. Revisá su estado en Mi cuenta en unos minutos.",
+  "sin-verificar":
+    "No pudimos confirmar con Mercado Pago que ese pedido no tenga un pago en curso, así que no lo tocamos. Probá de nuevo en unos minutos.",
+};
+
 export default async function CarritoPage({
   searchParams,
 }: PageProps<"/carrito">) {
-  const { ajustado } = await searchParams;
-  const [cart, settings] = await Promise.all([
+  const { ajustado, pedido } = await searchParams;
+  const [cart, settings, profile] = await Promise.all([
     readCart().then(resolveCart),
     getStoreSettings(),
+    getCurrentUser(),
   ]);
+  const pendingOrders = profile ? await getRecentPendingOrdersForUser(profile.id) : [];
+
+  const pendingBlock = (
+    <>
+      {typeof pedido === "string" && orderNotices[pedido] && (
+        <p className="mt-4 rounded-tile bg-surface px-4 py-3 text-sm text-cocoa">
+          {orderNotices[pedido]}
+        </p>
+      )}
+      {pendingOrders[0] && (
+        <div className="mt-5">
+          <PendingOrderNotice
+            order={pendingOrders[0]}
+            otherPendingCount={pendingOrders.length - 1}
+            cartHasItems={cart.lines.length > 0}
+          />
+        </div>
+      )}
+    </>
+  );
 
   const adjustedBanner = ajustado === "1" && (
     <p className="mt-4 flex items-center gap-2 rounded-tile bg-blush px-4 py-3 text-sm text-berry">
@@ -33,7 +65,8 @@ export default async function CarritoPage({
     return (
       <div className="py-6">
         <CheckoutSteps current={1} />
-        <h1 className="mt-5 font-serif text-4xl text-ink">Tu carrito</h1>
+        {pendingBlock}
+        <h1 className="mt-6 font-serif text-4xl text-ink">Tu carrito</h1>
         {adjustedBanner}
         <p className="mt-4 text-cocoa">Tu carrito está vacío.</p>
         <Link href="/productos" className={buttonClass("primary", "md", "mt-5")}>
@@ -55,8 +88,9 @@ export default async function CarritoPage({
   return (
     <div className="py-2">
       <CheckoutSteps current={1} />
+      {pendingBlock}
 
-      <div className="mt-5 grid items-start gap-8 lg:grid-cols-[1.65fr_1fr]">
+      <div className="mt-6 grid items-start gap-8 lg:grid-cols-[1.65fr_1fr]">
         <div>
           <div className="flex items-baseline justify-between">
             <h1 className="font-serif text-4xl text-ink">Tu carrito</h1>

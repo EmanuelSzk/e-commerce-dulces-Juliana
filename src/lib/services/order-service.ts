@@ -83,6 +83,34 @@ export function getOrderForUser(orderId: string, userId: string) {
   });
 }
 
+// Pending orders older than this aren't surfaced in the cart: after two days
+// an abandoned payment is more noise than a reminder (it stays in Mi cuenta).
+const PENDING_REMINDER_HOURS = 48;
+
+export function getRecentPendingOrdersForUser(userId: string) {
+  return prisma.order.findMany({
+    where: {
+      userId,
+      status: "PENDING",
+      payment: { mpInitPoint: { not: null } },
+      createdAt: { gte: new Date(Date.now() - PENDING_REMINDER_HOURS * 60 * 60 * 1000) },
+    },
+    include: orderDetails,
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+}
+
+// Scoped to the owner and to PENDING, so it can't cancel someone else's order
+// or one the webhook already marked as paid.
+export async function cancelPendingOrderForUser(orderId: string, userId: string) {
+  const changed = await prisma.order.updateMany({
+    where: { id: orderId, userId, status: "PENDING" },
+    data: { status: "CANCELLED" },
+  });
+  return changed.count === 1;
+}
+
 const adminOrderDetails = { ...orderDetails, user: true } as const;
 
 export function getOrdersForAdmin(filters: {

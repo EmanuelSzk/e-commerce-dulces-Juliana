@@ -70,6 +70,18 @@ export async function writeCart(items: CartItem[]) {
   });
 }
 
+// Adds quantities onto whatever is already in the cart. Stock limits are
+// applied later by resolveCart, which flags anything that no longer fits.
+export async function addItemsToCart(items: CartItem[]) {
+  const merged = new Map((await readCart()).map((item) => [item.variantId, item.quantity]));
+  for (const item of items) {
+    merged.set(item.variantId, (merged.get(item.variantId) ?? 0) + item.quantity);
+  }
+  await writeCart(
+    [...merged].slice(0, 50).map(([variantId, quantity]) => ({ variantId, quantity })),
+  );
+}
+
 export function countCartUnits(items: CartItem[]) {
   return items.reduce((total, item) => total + item.quantity, 0);
 }
