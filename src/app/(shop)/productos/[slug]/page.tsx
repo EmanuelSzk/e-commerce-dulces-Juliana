@@ -7,7 +7,7 @@ import { getStoreSettings } from "@/lib/services/settings-service";
 import { formatPrice } from "@/lib/format";
 import { AddToCartForm } from "@/components/shop/add-to-cart-form";
 import { ProductCard } from "@/components/shop/product-card";
-import { badgeClass } from "@/components/ui/styles";
+import { badgeClass, productGridClass } from "@/components/ui/styles";
 
 export async function generateMetadata({
   params,
@@ -98,7 +98,7 @@ export default async function ProductoDetallePage({
       {related.length > 0 && (
         <section className="-mx-4 mt-12 bg-surface px-4 py-8 sm:-mx-8 sm:px-8">
           <h2 className="font-serif text-3xl text-ink">También te puede gustar</h2>
-          <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className={`mt-5 ${productGridClass}`}>
             {related.map((item) => (
               <ProductCard key={item.id} product={item} />
             ))}

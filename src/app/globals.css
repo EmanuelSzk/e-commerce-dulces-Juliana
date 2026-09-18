@@ -2,6 +2,9 @@
 
 /* Identidad del mockup "Dulces Juliana". Solo modo claro, como el diseño. */
 @theme {
+  /* Celulares chicos: por debajo de 360px la grilla de productos va en 1 columna. */
+  --breakpoint-xs: 22.5rem;
+
   --color-cream: #fdf9f6;
   --color-ink: #2a201d;
   --color-cocoa: #5c4a44;

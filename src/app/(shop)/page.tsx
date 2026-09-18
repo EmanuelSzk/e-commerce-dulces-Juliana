@@ -8,7 +8,7 @@ import {
 import { formatPrice } from "@/lib/format";
 import { ProductCard } from "@/components/shop/product-card";
 import { CategoryChips } from "@/components/shop/category-chips";
-import { badgeClass, buttonClass } from "@/components/ui/styles";
+import { badgeClass, buttonClass, productGridClass } from "@/components/ui/styles";
 
 export default async function HomePage() {
   const [categories, products] = await Promise.all([
@@ -76,7 +76,7 @@ export default async function HomePage() {
         {products.length === 0 ? (
           <p className="mt-6 text-cocoa">Todavía no hay productos cargados.</p>
         ) : (
-          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className={`mt-6 ${productGridClass}`}>
             {products.slice(0, 8).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

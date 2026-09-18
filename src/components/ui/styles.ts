@@ -49,3 +49,7 @@ export const inputClass =
   "mt-1.5 w-full rounded-tile bg-sand px-4 py-3 text-sm text-ink placeholder:text-taupe outline-none focus:ring-2 focus:ring-pink/50";
 
 export const cardClass = "rounded-card bg-cream shadow-soft";
+
+// 1 columna en celulares chicos (<360px, ver --breakpoint-xs), 2 en celulares
+// comunes y tablets, 4 en escritorio.
+export const productGridClass = "grid grid-cols-1 gap-4 xs:grid-cols-2 lg:grid-cols-4";

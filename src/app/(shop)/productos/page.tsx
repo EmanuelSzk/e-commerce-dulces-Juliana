@@ -5,6 +5,7 @@ import {
 } from "@/lib/services/product-service";
 import { ProductCard } from "@/components/shop/product-card";
 import { CategoryChips } from "@/components/shop/category-chips";
+import { productGridClass } from "@/components/ui/styles";
 
 export const metadata: Metadata = { title: "Catálogo" };
 
@@ -38,7 +39,7 @@ export default async function ProductosPage({
       {products.length === 0 ? (
         <p className="mt-8 text-cocoa">No hay productos en esta categoría todavía.</p>
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className={`mt-6 ${productGridClass}`}>
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

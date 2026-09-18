@@ -78,7 +78,7 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
           <QuickAddButton variantId={singleVariant.id} />
         ) : (
           <Link href={href} className={buttonClass("ink", "md", "mt-3 w-full")}>
-            Elegir presentación
+            Ver opciones
           </Link>
         )}
       </div>
