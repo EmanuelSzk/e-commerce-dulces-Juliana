@@ -38,6 +38,26 @@ export function getProducts(params?: { categorySlug?: string }) {
   });
 }
 
+// Same category first; filled with other products if the category is small.
+export async function getRelatedProducts(product: ProductWithVariants, limit = 4) {
+  const sameCategory = await prisma.product.findMany({
+    where: { active: true, categoryId: product.categoryId, id: { not: product.id } },
+    include: withVariants,
+    take: limit,
+  });
+  if (sameCategory.length >= limit) return sameCategory;
+
+  const others = await prisma.product.findMany({
+    where: {
+      active: true,
+      id: { notIn: [product.id, ...sameCategory.map((p) => p.id)] },
+    },
+    include: withVariants,
+    take: limit - sameCategory.length,
+  });
+  return [...sameCategory, ...others];
+}
+
 export function getProductBySlug(slug: string) {
   return prisma.product.findUnique({
     where: { slug },
