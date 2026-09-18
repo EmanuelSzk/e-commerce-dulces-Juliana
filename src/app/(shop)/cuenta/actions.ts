@@ -47,14 +47,14 @@ export async function login(
     return { message: "Email o contraseña incorrectos." };
   }
 
-  const next = formData.get("next");
-  // Solo rutas internas: evita un open redirect si alguien manipula el campo.
-  const target =
-    typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
-      ? next
-      : "/cuenta";
+  redirect(safeNext(formData.get("next")));
+}
 
-  redirect(target);
+// Solo rutas internas: evita un open redirect si alguien manipula el campo.
+function safeNext(next: FormDataEntryValue | null) {
+  return typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
+    ? next
+    : "/cuenta";
 }
 
 export async function signup(
@@ -97,7 +97,7 @@ export async function signup(
     };
   }
 
-  redirect("/cuenta");
+  redirect(safeNext(formData.get("next")));
 }
 
 export async function loginWithGoogle() {

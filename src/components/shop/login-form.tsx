@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
 import { login, loginWithGoogle, type AuthFormState } from "@/app/(shop)/cuenta/actions";
+import { buttonClass, inputClass } from "@/components/ui/styles";
+import { PasswordInput } from "./password-input";
 
 export function LoginForm({ next }: { next?: string }) {
   const [state, action, pending] = useActionState<AuthFormState, FormData>(
@@ -11,74 +12,42 @@ export function LoginForm({ next }: { next?: string }) {
   );
 
   return (
-    <div className="mx-auto max-w-sm">
-      <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
-
-      <form action={action} className="mt-6 space-y-4">
+    <div>
+      <form action={action} className="grid gap-4">
         {next ? <input type="hidden" name="next" value={next} /> : null}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
-          />
+          <label htmlFor="email" className="text-[12.5px] font-medium text-cocoa">Email</label>
+          <input id="email" name="email" type="email" autoComplete="email" className={inputClass} />
           {state?.errors?.email && (
-            <p className="mt-1 text-sm text-red-600">{state.errors.email[0]}</p>
+            <p className="mt-1.5 text-sm text-berry">{state.errors.email[0]}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium">
-            Contraseña
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
-          />
+          <label htmlFor="password" className="text-[12.5px] font-medium text-cocoa">Contraseña</label>
+          <PasswordInput id="password" name="password" autoComplete="current-password" />
           {state?.errors?.password && (
-            <p className="mt-1 text-sm text-red-600">
-              {state.errors.password[0]}
-            </p>
+            <p className="mt-1.5 text-sm text-berry">{state.errors.password[0]}</p>
           )}
         </div>
 
-        {state?.message && (
-          <p className="text-sm text-red-600">{state.message}</p>
-        )}
+        {state?.message && <p className="text-sm text-berry">{state.message}</p>}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full rounded-full bg-black px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
-        >
+        <button type="submit" disabled={pending} className={buttonClass("primary", "lg", "w-full")}>
           {pending ? "Ingresando…" : "Ingresar"}
         </button>
       </form>
 
-      <form action={loginWithGoogle} className="mt-3">
-        <button
-          type="submit"
-          className="w-full rounded-full border border-black/15 px-4 py-2.5 text-sm"
-        >
+      <div className="my-4 flex items-center gap-3 text-xs font-light text-taupe">
+        <span className="h-px flex-1 bg-ink/10" />o<span className="h-px flex-1 bg-ink/10" />
+      </div>
+
+      <form action={loginWithGoogle}>
+        <button type="submit" className={buttonClass("outline", "lg", "w-full")}>
           Continuar con Google
         </button>
       </form>
-
-      <p className="mt-6 text-sm text-black/60">
-        ¿No tenés cuenta?{" "}
-        <Link href="/cuenta/registro" className="underline">
-          Creá una
-        </Link>
-      </p>
     </div>
   );
 }
