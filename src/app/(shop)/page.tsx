@@ -5,15 +5,18 @@ import {
   getDisplayPrice,
   getProducts,
 } from "@/lib/services/product-service";
+import { getStoreSettings } from "@/lib/services/settings-service";
 import { formatPrice } from "@/lib/format";
 import { ProductCard } from "@/components/shop/product-card";
+import { PickupMap } from "@/components/shop/pickup-map";
 import { CategoryChips } from "@/components/shop/category-chips";
 import { badgeClass, buttonClass, productGridClass } from "@/components/ui/styles";
 
 export default async function HomePage() {
-  const [categories, products] = await Promise.all([
+  const [categories, products, settings] = await Promise.all([
     getCategoriesWithProducts(),
     getProducts(),
+    getStoreSettings(),
   ]);
 
   const featured = products.find((product) => product.imageUrl) ?? products[0];
@@ -83,6 +86,8 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+
+      <PickupMap settings={settings} />
     </div>
   );
 }
