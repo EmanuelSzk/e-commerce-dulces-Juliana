@@ -17,32 +17,37 @@ function mapUrls() {
   };
 }
 
+// Enlace estándar de Google Maps (sin clave): abre el recorrido desde donde
+// esté la persona. Usa la dirección de Configuración.
+function directionsUrl(address: string) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+}
+
+function MapFrame({ className }: { className: string }) {
+  return (
+    <div className={`relative overflow-hidden bg-sand ${className}`}>
+      <iframe
+        title="Mapa con la ubicación del local de Dulces Juliana"
+        src={mapUrls().embed}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        className="absolute inset-0 h-full w-full border-0 [filter:saturate(0.85)_sepia(0.12)]"
+      />
+    </div>
+  );
+}
+
 export function PickupMap({
   settings,
 }: {
   settings: { shippingCost: number; freeShippingFrom: number; pickupAddress: string };
 }) {
-  const urls = mapUrls();
-  // Enlace estándar de Google Maps (sin clave): abre el recorrido desde donde
-  // esté la persona. Usa la dirección de Configuración.
-  const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-    settings.pickupAddress,
-  )}`;
-
   return (
     <section
       aria-labelledby="retiro-titulo"
       className="grid items-stretch gap-5 md:grid-cols-[1.4fr_1fr]"
     >
-      <div className="relative h-72 overflow-hidden rounded-card bg-sand shadow-soft md:h-auto md:min-h-[360px]">
-        <iframe
-          title="Mapa con la ubicación del local de Dulces Juliana"
-          src={urls.embed}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          className="absolute inset-0 h-full w-full border-0 [filter:saturate(0.85)_sepia(0.12)]"
-        />
-      </div>
+      <MapFrame className="h-72 rounded-card shadow-soft md:h-auto md:min-h-[360px]" />
 
       <div className="flex flex-col rounded-card bg-surface p-6 sm:p-7">
         <span className={`${badgeClass("blush")} w-max`}>Retiro sin cargo</span>
@@ -75,7 +80,7 @@ export function PickupMap({
 
         <div className="mt-6 flex flex-wrap items-center gap-3 md:mt-auto md:pt-6">
           <a
-            href={directions}
+            href={directionsUrl(settings.pickupAddress)}
             target="_blank"
             rel="noopener noreferrer"
             className={buttonClass("primary", "md")}
@@ -83,7 +88,7 @@ export function PickupMap({
             Cómo llegar
           </a>
           <a
-            href={urls.full}
+            href={mapUrls().full}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-berry hover:underline"
@@ -93,5 +98,30 @@ export function PickupMap({
         </div>
       </div>
     </section>
+  );
+}
+
+// Versión chica para el checkout, debajo de la elección entre envío y retiro.
+export function PickupMapCompact({ pickupAddress }: { pickupAddress: string }) {
+  return (
+    <div className="mt-4 overflow-hidden rounded-[20px] bg-surface">
+      <MapFrame className="h-48" />
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <p className="flex items-start gap-2 text-[13.5px] text-ink">
+          <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-pink-deep" />
+          <span>
+            <span className="font-medium">Local para retirar:</span> {pickupAddress}
+          </span>
+        </p>
+        <a
+          href={directionsUrl(pickupAddress)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13.5px] font-medium text-berry hover:underline"
+        >
+          Cómo llegar
+        </a>
+      </div>
+    </div>
   );
 }

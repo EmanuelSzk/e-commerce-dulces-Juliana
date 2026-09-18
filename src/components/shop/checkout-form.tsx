@@ -6,6 +6,7 @@ import { calculateTotals, type DeliveryMethod } from "@/lib/pricing";
 import { formatPrice } from "@/lib/format";
 import { buttonClass, inputClass } from "@/components/ui/styles";
 import { LockIcon } from "./icons";
+import { PickupMapCompact } from "./pickup-map";
 
 export type CheckoutLine = {
   variantId: string;
@@ -86,6 +87,7 @@ export function CheckoutForm(props: CheckoutFormProps) {
             })}
           </div>
           <FieldError messages={state?.errors?.deliveryMethod} />
+          <PickupMapCompact pickupAddress={props.pickupAddress} />
         </fieldset>
 
         <fieldset className="space-y-4">

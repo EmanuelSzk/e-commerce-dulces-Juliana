@@ -3,7 +3,9 @@ import {
   getCategoriesWithProducts,
   getProducts,
 } from "@/lib/services/product-service";
+import { getStoreSettings } from "@/lib/services/settings-service";
 import { ProductCard } from "@/components/shop/product-card";
+import { PickupMap } from "@/components/shop/pickup-map";
 import { CategoryChips } from "@/components/shop/category-chips";
 import { productGridClass } from "@/components/ui/styles";
 
@@ -15,9 +17,10 @@ export default async function ProductosPage({
   const { categoria } = await searchParams;
   const categorySlug = typeof categoria === "string" ? categoria : undefined;
 
-  const [categories, products] = await Promise.all([
+  const [categories, products, settings] = await Promise.all([
     getCategoriesWithProducts(),
     getProducts({ categorySlug }),
+    getStoreSettings(),
   ]);
 
   const activeCategory = categories.find((c) => c.slug === categorySlug);
@@ -45,6 +48,10 @@ export default async function ProductosPage({
           ))}
         </div>
       )}
+
+      <div className="mt-12">
+        <PickupMap settings={settings} />
+      </div>
     </div>
   );
 }
