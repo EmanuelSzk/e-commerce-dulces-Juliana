@@ -21,6 +21,7 @@ type CheckoutFormProps = {
   shippingCost: number;
   freeShippingFrom: number;
   pickupAddress: string;
+  pickupHours: string | null;
   defaultName: string;
 };
 
@@ -49,7 +50,9 @@ export function CheckoutForm(props: CheckoutFormProps) {
     {
       value: "PICKUP" as const,
       label: "Retiro en el local",
-      detail: `Sin cargo · ${props.pickupAddress}`,
+      detail: props.pickupHours
+        ? `Sin cargo · ${props.pickupHours}`
+        : `Sin cargo · ${props.pickupAddress}`,
     },
   ];
 
@@ -87,7 +90,10 @@ export function CheckoutForm(props: CheckoutFormProps) {
             })}
           </div>
           <FieldError messages={state?.errors?.deliveryMethod} />
-          <PickupMapCompact pickupAddress={props.pickupAddress} />
+          <PickupMapCompact
+            pickupAddress={props.pickupAddress}
+            pickupHours={props.pickupHours}
+          />
         </fieldset>
 
         <fieldset className="space-y-4">

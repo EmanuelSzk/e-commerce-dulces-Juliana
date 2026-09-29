@@ -1,7 +1,7 @@
 import { formatPrice } from "@/lib/format";
 import { storeLocation } from "@/lib/store-info";
 import { badgeClass, buttonClass } from "@/components/ui/styles";
-import { MapPinIcon } from "./icons";
+import { ClockIcon, MapPinIcon } from "./icons";
 
 // Área visible alrededor del local (en grados), equivale a unas pocas cuadras.
 const SPAN = { lat: 0.004, lng: 0.006 };
@@ -40,7 +40,12 @@ function MapFrame({ className }: { className: string }) {
 export function PickupMap({
   settings,
 }: {
-  settings: { shippingCost: number; freeShippingFrom: number; pickupAddress: string };
+  settings: {
+    shippingCost: number;
+    freeShippingFrom: number;
+    pickupAddress: string;
+    pickupHours?: string | null;
+  };
 }) {
   return (
     <section
@@ -63,6 +68,13 @@ export function PickupMap({
           <MapPinIcon className="mt-0.5 h-5 w-5 shrink-0 text-pink-deep" />
           {settings.pickupAddress}
         </p>
+
+        {settings.pickupHours && (
+          <p className="mt-2 flex items-start gap-2.5 text-[13.5px] font-light text-cocoa">
+            <ClockIcon className="mt-0.5 h-4 w-4 shrink-0 text-taupe" />
+            {settings.pickupHours}
+          </p>
+        )}
 
         <dl className="mt-4 grid gap-2 text-[13.5px] font-light text-cocoa">
           <div className="flex gap-3">
@@ -102,7 +114,13 @@ export function PickupMap({
 }
 
 // Versión chica para el checkout, debajo de la elección entre envío y retiro.
-export function PickupMapCompact({ pickupAddress }: { pickupAddress: string }) {
+export function PickupMapCompact({
+  pickupAddress,
+  pickupHours,
+}: {
+  pickupAddress: string;
+  pickupHours?: string | null;
+}) {
   return (
     <div className="mt-4 overflow-hidden rounded-[20px] bg-surface">
       <MapFrame className="h-48" />
@@ -111,6 +129,9 @@ export function PickupMapCompact({ pickupAddress }: { pickupAddress: string }) {
           <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-pink-deep" />
           <span>
             <span className="font-medium">Local para retirar:</span> {pickupAddress}
+            {pickupHours && (
+              <span className="mt-0.5 block font-light text-taupe">{pickupHours}</span>
+            )}
           </span>
         </p>
         <a

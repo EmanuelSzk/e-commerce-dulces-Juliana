@@ -37,6 +37,7 @@ export default async function CheckoutPage() {
           shippingCost={settings.shippingCost}
           freeShippingFrom={settings.freeShippingFrom}
           pickupAddress={settings.pickupAddress}
+          pickupHours={settings.pickupHours}
           defaultName={profile.name}
         />
       </div>

@@ -9,6 +9,7 @@ import { MobileNav } from "@/components/shop/mobile-nav";
 import { SiteFooter } from "@/components/shop/site-footer";
 import { CartIcon } from "@/components/shop/icons";
 import { RefreshOnRestore } from "@/components/shop/refresh-on-restore";
+import { WhatsAppButton } from "@/components/shop/whatsapp-button";
 
 export default async function ShopLayout({
   children,
@@ -86,6 +87,7 @@ export default async function ShopLayout({
       </main>
 
       <SiteFooter categories={categories} settings={settings} />
+      <WhatsAppButton />
       <RefreshOnRestore />
       <MobileNav cartUnits={cartUnits} accountHref={accountHref} />
     </>

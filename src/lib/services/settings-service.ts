@@ -17,5 +17,6 @@ export const getStoreSettings = cache(async () => {
     shippingCost: Number(settings.shippingCost),
     freeShippingFrom: Number(settings.freeShippingFrom),
     pickupAddress: settings.pickupAddress,
+    pickupHours: settings.pickupHours,
   };
 });

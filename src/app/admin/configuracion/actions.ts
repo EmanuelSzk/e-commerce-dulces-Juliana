@@ -16,6 +16,7 @@ const SettingsSchema = z.object({
     .string()
     .trim()
     .min(5, { error: "Escribí la dirección del local." }),
+  pickupHours: z.string().trim().max(200).optional(),
 });
 
 export async function updateStoreSettings(
@@ -28,6 +29,7 @@ export async function updateStoreSettings(
     shippingCost: formData.get("shippingCost"),
     freeShippingFrom: formData.get("freeShippingFrom"),
     pickupAddress: formData.get("pickupAddress"),
+    pickupHours: formData.get("pickupHours") ?? undefined,
   });
 
   if (!fields.success) {
@@ -37,7 +39,7 @@ export async function updateStoreSettings(
 
   await prisma.storeSettings.update({
     where: { id: "store" },
-    data: fields.data,
+    data: { ...fields.data, pickupHours: fields.data.pickupHours || null },
   });
 
   redirect("/admin/configuracion?guardado=1");

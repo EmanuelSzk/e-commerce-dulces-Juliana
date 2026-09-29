@@ -5,10 +5,11 @@ import { prisma } from "@/lib/db";
 export default async function AdminDashboardPage() {
   await requireAdmin();
 
-  const [pendingOrders, ordersToReview, soldOutVariants] = await Promise.all([
+  const [pendingOrders, ordersToReview, soldOutVariants, openCancellations] = await Promise.all([
     prisma.order.count({ where: { status: "PENDING" } }),
     prisma.order.count({ where: { reviewNote: { not: null } } }),
     prisma.productVariant.count({ where: { active: true, stock: 0 } }),
+    prisma.cancellationRequest.count({ where: { resolvedAt: null } }),
   ]);
 
   const cards = [
@@ -28,13 +29,19 @@ export default async function AdminDashboardPage() {
       value: soldOutVariants,
       href: "/admin/productos",
     },
+    {
+      label: "Solicitudes de arrepentimiento sin resolver",
+      value: openCancellations,
+      href: "/admin/arrepentimientos",
+      highlight: openCancellations > 0,
+    },
   ];
 
   return (
     <div>
       <h1 className="text-2xl font-semibold">Tablero</h1>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
           <Link
             key={card.label}

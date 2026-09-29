@@ -11,7 +11,12 @@ const input = "mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm";
 export function SettingsForm({
   settings,
 }: {
-  settings: { shippingCost: number; freeShippingFrom: number; pickupAddress: string };
+  settings: {
+    shippingCost: number;
+    freeShippingFrom: number;
+    pickupAddress: string;
+    pickupHours: string | null;
+  };
 }) {
   const [state, action, pending] = useActionState<SettingsFormState, FormData>(
     updateStoreSettings,
@@ -60,6 +65,22 @@ export function SettingsForm({
           defaultValue={settings.pickupAddress}
           className={input}
         />
+      </div>
+
+      <div>
+        <label htmlFor="pickupHours" className="block text-sm font-medium">
+          Horarios para retirar
+        </label>
+        <input
+          id="pickupHours"
+          name="pickupHours"
+          defaultValue={settings.pickupHours ?? ""}
+          placeholder="Lunes a viernes de 10 a 19, sábados de 10 a 13"
+          className={input}
+        />
+        <p className="mt-1 text-xs text-black/50">
+          Se muestra en la tienda junto a la dirección. Si lo dejás vacío, no se muestra.
+        </p>
       </div>
 
       {state?.message && <p className="text-sm text-red-600">{state.message}</p>}

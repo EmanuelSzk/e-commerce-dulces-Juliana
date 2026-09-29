@@ -12,6 +12,7 @@ const sections = [
   { href: "/admin/pedidos", label: "Pedidos" },
   { href: "/admin/productos", label: "Productos" },
   { href: "/admin/categorias", label: "Categorías" },
+  { href: "/admin/arrepentimientos", label: "Arrepentimientos" },
   { href: "/admin/configuracion", label: "Configuración" },
 ];
 

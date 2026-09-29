@@ -82,7 +82,10 @@ export default async function ProductoDetallePage({
           <dl className="mt-6 grid gap-3 rounded-[20px] bg-surface px-5 py-5 text-[13.5px] font-light text-cocoa">
             <div className="flex gap-3">
               <dt className="min-w-24 font-medium text-ink">Retiro</dt>
-              <dd>Sin cargo en {settings.pickupAddress}</dd>
+              <dd>
+                Sin cargo en {settings.pickupAddress}
+                {settings.pickupHours ? ` · ${settings.pickupHours}` : ""}
+              </dd>
             </div>
             <div className="flex gap-3">
               <dt className="min-w-24 font-medium text-ink">Envío</dt>

@@ -46,6 +46,7 @@ model Profile {
   name      String
   role      UserRole @default(CUSTOMER)
   orders    Order[]
+  cancellationRequests CancellationRequest[]
   createdAt DateTime @default(now())
 
   @@map("profiles")
@@ -101,6 +102,8 @@ model StoreSettings {
   shippingCost     Decimal  @db.Decimal(10, 2)
   freeShippingFrom Decimal  @db.Decimal(10, 2)
   pickupAddress    String
+  // Días y horarios de atención para retirar, en texto libre.
+  pickupHours      String?
   updatedAt        DateTime @updatedAt
 
   @@map("store_settings")
@@ -158,4 +161,21 @@ model Payment {
   updatedAt      DateTime      @updatedAt
 
   @@map("payments")
+}
+
+// "Botón de arrepentimiento" (Resolución 424/2020): deja constancia de cada
+// pedido de cancelación, aunque quien lo envíe no tenga cuenta en la tienda.
+model CancellationRequest {
+  id             String    @id @default(cuid())
+  orderReference String
+  fullName       String
+  email          String
+  phone          String?
+  message        String?
+  user           Profile?  @relation(fields: [userId], references: [id])
+  userId         String?   @db.Uuid
+  createdAt      DateTime  @default(now())
+  resolvedAt     DateTime?
+
+  @@map("cancellation_requests")
 }
