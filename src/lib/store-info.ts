@@ -5,7 +5,13 @@ export const storeContact: {
   whatsappLabel?: string; // cómo se muestra, ej. "376 412-3456"
   email?: string;
   instagram?: string; // usuario sin @
-} = {};
+} = {
+  // wa.me exige el formato internacional: 54 + 9 (celular) + 376 + 4877341.
+  whatsapp: "5493764877341",
+  whatsappLabel: "376 487-7341",
+  email: "szkabrij.emanuel@gmail.com",
+  instagram: "emanuel_szk",
+};
 
 // Identificación de quien vende, para los textos legales.
 export const storeLegal = {
